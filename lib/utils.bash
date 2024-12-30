@@ -40,8 +40,6 @@ download_release() {
 	local version filename url
 	version="$1"
 	filename="$2"
-
-	# TODO: Adapt the release URL convention for ghostty
 	url="$GH_REPO/archive/v${version}.tar.gz"
 
 	echo "* Downloading $TOOL_NAME release $version..."
@@ -51,7 +49,7 @@ download_release() {
 install_version() {
 	local install_type="$1"
 	local version="$2"
-	local install_path="${3%/bin}/bin"
+	local install_path="${3%/bin}"
 
 	if [ "$install_type" != "version" ]; then
 		fail "asdf-$TOOL_NAME supports release installs only"
@@ -59,12 +57,12 @@ install_version() {
 
 	(
 		mkdir -p "$install_path"
-		cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
+		zig build -p "$install_path" -Doptimize=ReleaseFast
 
 		# TODO: Assert ghostty executable exists.
 		local tool_cmd
 		tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
-		test -x "$install_path/$tool_cmd" || fail "Expected $install_path/$tool_cmd to be executable."
+		test -x "$install_path/bin/$tool_cmd" || fail "Expected $install_path/$tool_cmd to be executable."
 
 		echo "$TOOL_NAME $version installation was successful!"
 	) || (
